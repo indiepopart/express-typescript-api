@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.1",
+  "type_definitions": [
+    {
+      "type": "user",
+      "relations": {},
+      "metadata": null
+    },
+    {
+      "type": "team",
+      "relations": {
+        "member": {
+          "this": {}
+        }
+      },
+      "metadata": {
+        "relations": {
+          "member": {
+            "directly_related_user_types": [
+              {
+                "type": "user"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}
