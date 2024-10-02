@@ -1,12 +1,12 @@
 import * as dotenv from "dotenv";
 import { NextFunction, Request, Response } from "express";
-import { OpenFgaClient } from '@openfga/sdk';
+import { ClientCheckRequest, OpenFgaClient } from "@openfga/sdk";
 
 dotenv.config();
 
 export class PermissionDenied extends Error {
   constructor(message: string) {
-    super(message)
+    super(message);
   }
 }
 
@@ -16,28 +16,72 @@ const fgaClient = new OpenFgaClient({
   authorizationModelId: process.env.FGA_MODEL_ID, // Optional, can be overridden per request
 });
 
+export const getPermission = (req: Request): ClientCheckRequest => {
+  const userId = req.auth?.payload.sub;
+  const tuple = {
+    user: `user:${userId}`,
+    object: `document:${req.params.id}`,
+    relation: "viewer",
+  };
+  return tuple;
+};
 
-export const checkRequiredPermissions = (requiredPermissions: string[]) => {
+export const updatePermission = (req: Request): ClientCheckRequest => {
+  const userId = req.auth?.payload.sub;
+  const tuple = {
+    user: `user:${userId}`,
+    object: `document:${req.params.id}`,
+    relation: "writer",
+  };
+  return tuple;
+};
+
+export const deletePermission = (req: Request): ClientCheckRequest => {
+  const userId = req.auth?.payload.sub;
+  const tuple = {
+    user: `user:${userId}`,
+    object: `document:${req.params.id}`,
+    relation: "owner",
+  };
+  return tuple;
+};
+
+export const createPermission = (req: Request): ClientCheckRequest | null => {
+  const userId = req.auth?.payload.sub;
+  const parentId = req.body.parentId;
+  const tuple = parentId
+    ? {
+        user: `user:${userId}`,
+        object: `document:${parentId}`,
+        relation: "writer",
+      }
+    : null;
+  return tuple;
+};
+
+export const checkRequiredPermissions = (
+  permission: (req: Request) => ClientCheckRequest | null
+) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const result = await fgaClient.check({
-        user: "user:jimena",
-        object: "team:superadmin",
-        relation: "member",
-      });
+      const tuple = permission(req);
 
-      console.log(result.allowed);
+      console.log("tuple", tuple);
+
+      if (!tuple) {
+        next();
+        return;
+      }
+      const result = await fgaClient.check(tuple);
 
       if (!result.allowed) {
-        next(new PermissionDenied('Permission denied'));
+        next(new PermissionDenied("Permission denied"));
+        return;
       }
 
-      console.log("Permission check passed");
       next();
     } catch (error) {
       next(error);
     }
   };
-
-}
-
+};

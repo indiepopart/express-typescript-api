@@ -16,7 +16,6 @@ export const saveDocument = async (document: Document): Promise<Document> => {
 export const findDocumentById = async (
   documentId: string
 ): Promise<Document | null> => {
-  console.log("documentId", documentId);
   const document = await DocumentModel.findById(documentId);
   return document;
 };
@@ -25,9 +24,7 @@ export const updateDocument = async (
   documentId: string,
   document: Document
 ): Promise<Document | null> => {
-  console.log("documentId", documentId);
   const updated = await DocumentModel.findByIdAndUpdate(documentId, document);
-  console.log("updated", updated);
   return updated;
 };
 

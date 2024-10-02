@@ -5,9 +5,8 @@ import {
   InsufficientScopeError,
 } from "express-oauth2-jwt-bearer";
 
-import { PermissionDenied } from './openfga.middleware';
-import { DocumentServiceError } from '../documents/document.service';
-import mongoose from 'mongoose';
+import { PermissionDenied } from "./openfga.middleware";
+import mongoose from "mongoose";
 
 export const errorHandler = (
   error: any,
@@ -15,8 +14,7 @@ export const errorHandler = (
   response: Response,
   next: NextFunction
 ) => {
-
-  console.log(error)
+  console.log(error);
 
   if (error instanceof InsufficientScopeError) {
     const message = "Permission denied";
@@ -43,7 +41,6 @@ export const errorHandler = (
   }
 
   if (error instanceof PermissionDenied) {
-    console.log("handle Permission denied");
     const message = "Permission denied";
 
     response.status(403).json({ message });
@@ -52,7 +49,6 @@ export const errorHandler = (
   }
 
   if (error instanceof mongoose.Error.ValidationError) {
-    console.log("handle ValidationError");
     const message = "Bad Request";
 
     response.status(400).json({ message });
